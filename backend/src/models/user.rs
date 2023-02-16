@@ -7,7 +7,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -62,15 +62,15 @@ impl ReadWrite for User {
         }
     }
 
-    fn delete(&self) -> bool {
+    fn delete(&self) -> Result<(), diesel::result::Error> { 
         let mut connection = db_connection();
+
         let delete = diesel::delete(users::table.filter(users::username.eq(&self.username)))
-            .execute(&mut connection)
-            .expect("Error deleting user");
+            .execute(&mut connection);
 
         match delete {
-            0 => false,
-            _ => true,
+            Ok(_) => Ok(()),
+            _ => Err(diesel::result::Error::NotFound),
         }
     }
 
@@ -82,10 +82,7 @@ impl ReadWrite for User {
             .select((users::id, users::username, users::email))
             .load::<User>(&mut connection);
 
-        match users {
-            Ok(users) => Ok(users),
-            Err(e) => Err(e),
-        }
+        users
     }
 }
 
@@ -111,12 +108,9 @@ impl Create<User> for NewUser {
                 .set(users::password.eq(hashed))
                 .execute(&mut connection)
                 .expect_err("Error hashing password in db");
-
         });
 
-        match user {
-            Ok(user) => Ok(user),
-            Err(e) => Err(e),
-        }
+        user
     }
 }
+
