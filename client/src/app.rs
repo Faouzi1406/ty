@@ -50,3 +50,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
         <Header prop=None />
     }
 }
+
+fn HomePage {
+    
+}

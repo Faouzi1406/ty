@@ -7,7 +7,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-#[derive(Queryable, Serialize, Deserialize, Debug)]
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -82,10 +82,7 @@ impl ReadWrite for User {
             .select((users::id, users::username, users::email))
             .load::<User>(&mut connection);
 
-        match users {
-            Ok(users) => Ok(users),
-            Err(e) => Err(e),
-        }
+        users
     }
 }
 
@@ -111,12 +108,14 @@ impl Create<User> for NewUser {
                 .set(users::password.eq(hashed))
                 .execute(&mut connection)
                 .expect_err("Error hashing password in db");
-
         });
 
-        match user {
-            Ok(user) => Ok(user),
-            Err(e) => Err(e),
-        }
+        user
     }
+}
+
+fn some_function(variable: String) {
+    let name = Some("Name");
+
+    //thread::new( )
 }
