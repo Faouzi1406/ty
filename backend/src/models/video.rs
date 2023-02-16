@@ -24,15 +24,6 @@ pub struct VideoCreate {
     pub user_id: i32,
 }
 
-// video (id) {
-//video::id,
-//video::title,
-//                 video::description,
-//                 video::url,
-//                 video::created_at,
-//                 video::user_id,
-// }
-
 impl Create<Video> for VideoCreate {
     fn create(&self) -> Result<Video, diesel::result::Error> {
         let mut connection = db_connection();
@@ -95,14 +86,14 @@ impl ReadWrite for Video {
         }
     }
 
-    fn delete(&self) -> bool {
+    fn delete(&self) -> Result<(), diesel::result::Error> {
         let mut connection = db_connection();
 
         let video = diesel::delete(video::table.filter(video::id.eq(&self.id)));
 
         match video.execute(&mut connection) {
-            Ok(_) => true,
-            Err(_) => false,
+            Ok(_) => Ok(()),
+            Err(_) => Err(diesel::result::Error::NotFound),
         }
     }
 

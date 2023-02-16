@@ -62,15 +62,15 @@ impl ReadWrite for User {
         }
     }
 
-    fn delete(&self) -> bool {
+    fn delete(&self) -> Result<(), diesel::result::Error> { 
         let mut connection = db_connection();
+
         let delete = diesel::delete(users::table.filter(users::username.eq(&self.username)))
-            .execute(&mut connection)
-            .expect("Error deleting user");
+            .execute(&mut connection);
 
         match delete {
-            0 => false,
-            _ => true,
+            Ok(_) => Ok(()),
+            _ => Err(diesel::result::Error::NotFound),
         }
     }
 
@@ -114,8 +114,3 @@ impl Create<User> for NewUser {
     }
 }
 
-fn some_function(variable: String) {
-    let name = Some("Name");
-
-    //thread::new( )
-}
