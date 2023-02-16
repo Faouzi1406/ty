@@ -5,6 +5,6 @@ pub trait Create<T> {
 pub trait ReadWrite {
     fn read(&self) -> Self;
     fn update(&self) -> Result<(), diesel::result::Error>;
-    fn delete(&self) -> bool;
+    fn delete(&self) -> Result<(), diesel::result::Error>;
     fn all() -> Result<Vec<Self>, diesel::result::Error> where Self: Sized;
 }

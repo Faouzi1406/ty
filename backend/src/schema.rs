@@ -12,14 +12,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    posts (id) {
-        id -> Int4,
-        body -> Text,
-        image -> Bytea,
-    }
-}
-
-diesel::table! {
     sessions (id) {
         id -> Int4,
         sessions_key -> Varchar,
@@ -65,7 +57,6 @@ diesel::joinable!(views -> video (video_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     comments,
-    posts,
     sessions,
     users,
     video,
