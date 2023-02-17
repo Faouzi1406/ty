@@ -1,6 +1,7 @@
 use crate::lib_db::db_connection::db_connection;
 use crate::schema::video;
 use crate::traits::db::{Create, ReadWrite};
+use crate::traits::get_db::GetFromDb;
 use chrono::{NaiveDateTime, Utc};
 use diesel::*;
 use serde::{Deserialize, Serialize};
@@ -112,5 +113,24 @@ impl ReadWrite for Video {
             .load::<Video>(&mut connection);
 
         videos
+    }
+}
+
+impl GetFromDb for Video {
+    fn get_by_id(id: i32) -> Result<Self, diesel::result::Error> {
+        let mut connection = db_connection();
+        let get_video = video::table
+            .select((
+                video::id,
+                video::title,
+                video::description,
+                video::url,
+                video::created_at,
+                video::user_id,
+            ))
+            .filter(video::id.eq(id))
+            .first::<Video>(&mut connection);
+
+        get_video
     }
 }
