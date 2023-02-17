@@ -12,10 +12,9 @@
 ./client/**/*.rs.bk
 
 # node e2e test tools and outputs
-./client/ode_modules/
-./client/test-results/
-./client/end2end/playwright-report/
-./client/playwright/.cache/
+./client/node_modules/
 
 
 backend/.env
+
+
