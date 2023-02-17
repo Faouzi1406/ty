@@ -17,3 +17,4 @@ bcrypt = "0.14"
 actix-web-actors = "4.2.0"
 actix-web = "4"
 actix = "0.13.0"
+actix-session = { version = "0.7.2", features = ["redis-actor-session"] }

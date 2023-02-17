@@ -16,3 +16,8 @@ pub trait ReadWrite {
     /// Read all records from the database
     fn all() -> Result<Vec<Self>, diesel::result::Error> where Self: Sized;
 }
+
+pub trait Read<T> {
+    /// Read a single record from the database
+    fn read(&self) -> Result<T, diesel::result::Error>;
+}
