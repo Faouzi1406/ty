@@ -1,17 +1,27 @@
 extern crate bcrypt;
 use crate::schema::*;
 use crate::traits::db::Create;
+use crate::traits::get_db::GetFromDb;
 use crate::{lib_db::db_connection::db_connection, traits::db::ReadWrite};
+//use actix_session::storage::SessionKey as Session;
 use bcrypt::{hash, DEFAULT_COST};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use crate::traits::auth::auth::Auth; 
+use crate::models::sessions::SessionKeyDb;
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub id: i32,
     pub username: String,
     pub email: String,
+}
+
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
+pub struct UserAuth {
+    pub username: String,
+    pub password: String,
 }
 
 #[derive(Insertable, Serialize, Deserialize, Clone)]
@@ -62,7 +72,7 @@ impl ReadWrite for User {
         }
     }
 
-    fn delete(&self) -> Result<(), diesel::result::Error> { 
+    fn delete(&self) -> Result<(), diesel::result::Error> {
         let mut connection = db_connection();
 
         let delete = diesel::delete(users::table.filter(users::username.eq(&self.username)))
@@ -98,19 +108,63 @@ impl Create<User> for NewUser {
             .returning((users::id, users::username, users::email))
             .get_result::<User>(&mut connection);
 
-        // hash self.password and store in db in thread
         let hash_pass = Arc::new(self.clone());
-        std::thread::spawn(move || {
-            let hash_pass = hash_pass.clone();
-            let hashed = hash(&hash_pass.password, DEFAULT_COST).unwrap();
+        if user.is_ok() {
+            std::thread::spawn(move || {
+                let hash_pass = hash_pass.clone();
+                let hashed = hash(&hash_pass.password, DEFAULT_COST).expect("Error hashing password.");
 
-            diesel::update(users::table.filter(users::username.eq(&hash_pass.username)))
-                .set(users::password.eq(hashed))
-                .execute(&mut connection)
-                .expect_err("Error hashing password in db");
-        });
+                let mut connection = db_connection();
+                let _ =
+                    diesel::update(users::table.filter(users::username.eq(&hash_pass.username)))
+                        .set((users::password.eq(hashed),))
+                        .execute(&mut connection)
+                        .expect("Error updating password");
+            });
+        }
 
         user
     }
 }
 
+impl GetFromDb for User {
+    fn get_by_id(id: i32) -> Result<Self, diesel::result::Error> {
+        let mut connection = db_connection();
+
+        let user = users::table
+            .select((users::id, users::username, users::email))
+            .filter(users::id.eq(id))
+            .first::<User>(&mut connection);
+
+        user
+    }
+}
+
+impl Auth for User {
+    fn login(username: String, password: String) -> SessionKeyDb {
+        let mut connection = db_connection();
+
+        let user = users::table
+            .select((users::username, users::password))
+            .filter(users::username.eq(&username))
+            .first::<UserAuth>(&mut connection)
+            .expect("Error reading user");
+
+        let verify = bcrypt::verify(&password, &user.password);
+
+        // if verify.is_ok() {
+        //     let session_key = Sessionkew;
+        //     return session_key;
+        // }
+        
+        todo!();
+    }
+
+    fn logout(username: String) -> bool {
+       todo!() 
+    }
+
+    fn is_logged_in(sessions_key: String) -> bool {
+       todo!() 
+    }
+}
