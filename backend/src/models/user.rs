@@ -9,7 +9,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use crate::traits::auth::auth::Auth; 
-use crate::models::sessions::SessionKeyDb;
+use crate::models::sessions::{SessionKeyDb, CreateSessionKey};
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct User {
@@ -140,7 +140,7 @@ impl GetFromDb for User {
     }
 }
 
-impl Auth for User {
+impl Auth for UserAuth {
     fn login(username: String, password: String) -> SessionKeyDb {
         let mut connection = db_connection();
 
@@ -153,9 +153,12 @@ impl Auth for User {
         let verify = bcrypt::verify(&password, &user.password);
 
         // if verify.is_ok() {
-        //     let session_key = Sessionkew;
-        //     return session_key;
+        //     let session = CreateSessionKey::create(&self);
+        //     session
+        // } else {
+        //     panic!("Error logging in.");
         // }
+
         
         todo!();
     }
