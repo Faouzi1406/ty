@@ -4,12 +4,12 @@ use crate::traits::db::Create;
 use crate::traits::get_db::GetFromDb;
 use crate::{lib_db::db_connection::db_connection, traits::db::ReadWrite};
 //use actix_session::storage::SessionKey as Session;
+use crate::models::sessions::{CreateSessionKey, SessionKeyDb};
+use crate::traits::auth::auth::Auth;
 use bcrypt::{hash, DEFAULT_COST};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use crate::traits::auth::auth::Auth; 
-use crate::models::sessions::SessionKeyDb;
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct User {
@@ -112,7 +112,8 @@ impl Create<User> for NewUser {
         if user.is_ok() {
             std::thread::spawn(move || {
                 let hash_pass = hash_pass.clone();
-                let hashed = hash(&hash_pass.password, DEFAULT_COST).expect("Error hashing password.");
+                let hashed =
+                    hash(&hash_pass.password, DEFAULT_COST).expect("Error hashing password.");
 
                 let mut connection = db_connection();
                 let _ =
@@ -140,8 +141,11 @@ impl GetFromDb for User {
     }
 }
 
-impl Auth for User {
-    fn login(username: String, password: String) -> SessionKeyDb {
+impl Auth for UserAuth {
+    fn login(
+        username: String,
+        password: String,
+    ) -> Result<CreateSessionKey, diesel::result::Error> {
         let mut connection = db_connection();
 
         let user = users::table
@@ -152,19 +156,22 @@ impl Auth for User {
 
         let verify = bcrypt::verify(&password, &user.password);
 
-        // if verify.is_ok() {
-        //     let session_key = Sessionkew;
-        //     return session_key;
-        // }
-        
-        todo!();
+        if verify.is_ok() {
+            // CreateSessionKey {
+            //     id
+            //     user_id: user.username,
+            // };
+            session_key
+        } else {
+            return Err(diesel::result::Error::NotFound);
+        }
     }
 
     fn logout(username: String) -> bool {
-       todo!() 
+        todo!()
     }
 
     fn is_logged_in(sessions_key: String) -> bool {
-       todo!() 
+        todo!()
     }
 }

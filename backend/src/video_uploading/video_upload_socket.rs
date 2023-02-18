@@ -1,8 +1,23 @@
+use serde::{Deserialize, Serialize};
+use std::{fs::OpenOptions, io::Write};
+
 use actix::{Actor, StreamHandler};
 use actix_web::{web, App, Error, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
 
-pub struct WsVideoUploadSession;
+use crate::models::video::VideoCreate;
+
+pub struct WsVideoUploadSession {
+    file_name: String,
+    file: Vec<u8>,
+    file_size: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileUpload {
+    file_name: String,
+    file_size: usize,
+}
 
 impl Actor for WsVideoUploadSession {
     type Context = ws::WebsocketContext<Self>;
@@ -13,26 +28,38 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
         match msg {
             Ok(value) => match value {
                 ws::Message::Text(value) => {
-                    println!("Text: {}", value);
+                    let file_upload: Result<FileUpload, serde_json::Error> =
+                        serde_json::from_str(&value);
+
+                    let file_upload = match file_upload {
+                        Ok(value) => {
+                            self.file_name = value.file_name;
+                            self.file_size = value.file_size
+                        }
+                        Err(e) => {
+                            println!("Error: {:?}", e);
+                            return;
+                        }
+                    };
                 }
                 ws::Message::Binary(value) => {
-                    println!("Binary: {:?}", value);
+                    self.file.extend(value);
+                    let mut file = OpenOptions::new()
+                        .write(true)
+                        .create(true)
+                        .open(&self.file_name)
+                        .unwrap();
+
+                    if self.file.len() == self.file_size {
+                        file.write(&self.file).unwrap();
+                        ctx.text("File uploaded successfully");
+                    }
                 }
-                ws::Message::Ping(value) => {
-                    println!("Ping: {:?}", value);
-                }
-                ws::Message::Pong(value) => {
-                    println!("Pong: {:?}", value);
-                }
+
                 ws::Message::Close(value) => {
                     println!("Close: {:?}", value);
                 }
-                ws::Message::Continuation(value) => {
-                    println!("Continuation: {:?}", value);
-                }
-                ws::Message::Nop => {
-                    println!("Nop");
-                }
+                _ => (),
             },
             Err(e) => {
                 println!("Error: {:?}", e);
@@ -45,7 +72,15 @@ pub async fn video_upload_socket(
     req: HttpRequest,
     stream: web::Payload,
 ) -> Result<HttpResponse, Error> {
-    let resp = ws::start(WsVideoUploadSession {}, &req, stream);
+    let resp = ws::start(
+        WsVideoUploadSession {
+            file_name: "".to_string(),
+            file_size: 0,
+            file: vec![],
+        },
+        &req,
+        stream,
+    );
     println!("Response: {:?}", resp);
     resp
 }

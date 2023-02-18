@@ -12,7 +12,7 @@ pub struct SessionKeyDb {
     pub date: chrono::NaiveDateTime,
 }
 
-#[derive(Debug, Clone, Insertable, Serialize, Deserialize)]
+#[derive(Debug, Clone, Insertable, Serialize, Deserialize, Queryable)]
 #[table_name = "sessions"]
 pub struct CreateSessionKey {
     pub id: i32,
@@ -21,20 +21,17 @@ pub struct CreateSessionKey {
     pub date: chrono::NaiveDateTime,
 }
 
-impl Create<SessionKeyDb> for SessionKeyDb {
-    fn create(&self) -> Result<SessionKeyDb, diesel::result::Error> {
+impl  CreateSessionKey {
+    pub fn create(user_id:i32) -> Result<CreateSessionKey, diesel::result::Error> {
         let mut connection = db_connection();
-
-        let new_session = CreateSessionKey {
-            id: self.id,
-            sessions_key: self.session_key.clone(),
-            user_id: self.user_id,
-            date: chrono::Local::now().naive_local(),
-        };
-
-        let create_session = diesel::insert_into(sessions::table)
-            .values(&new_session)
-            .get_result::<SessionKeyDb>(&mut connection);
+        
+        // 
+        // let session = CreateSessionKey {
+        //     id: 0,
+        //     sessions_key: "".to_string(),
+        //     user_id,
+        //     date: chrono::Local::now().naive_local(),
+        // };
 
         create_session
     }
