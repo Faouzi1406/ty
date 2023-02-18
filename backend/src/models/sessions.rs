@@ -21,20 +21,17 @@ pub struct CreateSessionKey {
     pub date: chrono::NaiveDateTime,
 }
 
-impl Create<CreateSessionKey> for CreateSessionKey {
-    fn create(&self) -> Result<CreateSessionKey, diesel::result::Error> {
+impl  CreateSessionKey {
+    pub fn create(user_id:i32) -> Result<CreateSessionKey, diesel::result::Error> {
         let mut connection = db_connection();
-
-        let new_session = CreateSessionKey {
-            id: self.id,
-            sessions_key: self.sessions_key.clone(),
-            user_id: self.user_id,
-            date: chrono::Local::now().naive_local(),
-        };
-
-        let create_session = diesel::insert_into(sessions::table)
-            .values(&new_session)
-            .get_result::<CreateSessionKey>(&mut connection);
+        
+        // 
+        // let session = CreateSessionKey {
+        //     id: 0,
+        //     sessions_key: "".to_string(),
+        //     user_id,
+        //     date: chrono::Local::now().naive_local(),
+        // };
 
         create_session
     }

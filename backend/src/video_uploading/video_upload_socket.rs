@@ -1,9 +1,11 @@
 use serde::{Deserialize, Serialize};
-use std::{io::Write, fs::OpenOptions};
+use std::{fs::OpenOptions, io::Write};
 
 use actix::{Actor, StreamHandler};
 use actix_web::{web, App, Error, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
+
+use crate::models::video::VideoCreate;
 
 pub struct WsVideoUploadSession {
     file_name: String,
@@ -53,21 +55,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                         ctx.text("File uploaded successfully");
                     }
                 }
-                ws::Message::Ping(value) => {
-                    println!("ping")
-                }
-                ws::Message::Pong(value) => {
-                    println!("pong")
-                }
+
                 ws::Message::Close(value) => {
                     println!("Close: {:?}", value);
                 }
-                ws::Message::Continuation(value) => {
-                    println!("Continuation: {:?}", value);
-                }
-                ws::Message::Nop => {
-                    println!("Nop");
-                }
+                _ => (),
             },
             Err(e) => {
                 println!("Error: {:?}", e);
