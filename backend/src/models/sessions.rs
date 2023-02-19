@@ -3,6 +3,8 @@ use crate::schema::*;
 use crate::traits::db::{Create, Read};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use uuid::{uuid, Uuid};
+
 
 #[derive(Debug, Clone, Queryable, Serialize, Deserialize)]
 pub struct SessionKeyDb {
@@ -15,25 +17,26 @@ pub struct SessionKeyDb {
 #[derive(Debug, Clone, Insertable, Serialize, Deserialize, Queryable)]
 #[table_name = "sessions"]
 pub struct CreateSessionKey {
-    pub id: i32,
     pub sessions_key: String,
     pub user_id: i32,
     pub date: chrono::NaiveDateTime,
 }
 
 impl  CreateSessionKey {
-    pub fn create(user_id:i32) -> Result<CreateSessionKey, diesel::result::Error> {
+    pub fn create(user_id:i32) -> Result<SessionKeyDb, diesel::result::Error> {
         let mut connection = db_connection();
-        
-        // 
-        // let session = CreateSessionKey {
-        //     id: 0,
-        //     sessions_key: "".to_string(),
-        //     user_id,
-        //     date: chrono::Local::now().naive_local(),
-        // };
 
-        create_session
+        let create_session = CreateSessionKey {
+            sessions_key: Uuid::new_v4().to_string(),
+            user_id,
+            date: chrono::Local::now().naive_local(),
+        }; 
+
+        let session = diesel::insert_into(sessions::table)
+            .values(&create_session)
+            .get_result::<SessionKeyDb>(&mut connection);
+
+        session
     }
 }
 

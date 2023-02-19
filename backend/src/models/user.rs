@@ -20,6 +20,7 @@ pub struct User {
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
 pub struct UserAuth {
+    pub id: i32,
     pub username: String,
     pub password: String,
 }
@@ -145,11 +146,11 @@ impl Auth for UserAuth {
     fn login(
         username: String,
         password: String,
-    ) -> Result<CreateSessionKey, diesel::result::Error> {
+    ) -> Result<SessionKeyDb, diesel::result::Error> {
         let mut connection = db_connection();
 
         let user = users::table
-            .select((users::username, users::password))
+            .select((users::id,users::username, users::password))
             .filter(users::username.eq(&username))
             .first::<UserAuth>(&mut connection)
             .expect("Error reading user");
@@ -157,21 +158,23 @@ impl Auth for UserAuth {
         let verify = bcrypt::verify(&password, &user.password);
 
         if verify.is_ok() {
-            // CreateSessionKey {
-            //     id
-            //     user_id: user.username,
-            // };
+            let verify = verify.unwrap();
+            if !verify {
+                return Err(diesel::result::Error::NotFound);
+            }
+
+            let session_key = CreateSessionKey::create(user.id.clone());
             session_key
         } else {
             return Err(diesel::result::Error::NotFound);
         }
     }
 
-    fn logout(username: String) -> bool {
-        todo!()
-    }
+    // fn logout(username: String) -> bool {
+    //     todo!()
+    // }
 
-    fn is_logged_in(sessions_key: String) -> bool {
-        todo!()
-    }
+    // fn is_logged_in(sessions_key: String) -> bool {
+    //     todo!()
+    // }
 }

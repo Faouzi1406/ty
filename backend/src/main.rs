@@ -9,9 +9,8 @@ use crate::controllers::user_controllers::{
     create_user::create_user, get_all_users::get_all_users,
 };
 use actix_cors::Cors;
-use actix_session::{storage::RedisActorSessionStore, Session, SessionMiddleware};
-use actix_web::cookie::Key;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use controllers::auth::login_user;
 use controllers::{
     user_controllers::get_user::get_user,
     video_controllers::{
@@ -36,10 +35,6 @@ async fn main() -> std::io::Result<()> {
             .max_age(3600);
 
         App::new()
-            .wrap(SessionMiddleware::new(
-                RedisActorSessionStore::new("127.0.0.1:6379"),
-                Key::generate(),
-            ))
             .wrap(cors)
             .service(index)
             .service(create_user)
@@ -48,6 +43,7 @@ async fn main() -> std::io::Result<()> {
             .service(delete_video)
             .service(create_video)
             .service(get_video)
+            .service(login_user::login_user)
             .route("/videos/sockets/upload", web::get().to(video_upload_socket))
     })
     .bind(("127.0.0.1", 8080))?
