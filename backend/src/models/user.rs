@@ -170,6 +170,11 @@ impl Auth for UserAuth {
         }
     }
 
+    fn get_user_session_info(session_key: String) -> Result<User, diesel::result::Error> {
+        let user = SessionKeyDb::get_user(session_key);
+        user
+    }
+
     // fn logout(username: String) -> bool {
     //     todo!()
     // }
