@@ -7,37 +7,47 @@ export type User = {
   id: String,
   username: String,
   email: String,
-  profile_pic:String
+  profile_pic: String
 }
 
 export default class Auth {
   createSession(session: string) {
-    const create = localStorage.setItem('session', session);
+    try {
+      const create = localStorage.setItem('session', session);
+    }
+    catch (err) {
+      return Promise.resolve({ type: 'error', payload: "Local storage not found" });
+    }
   }
 
   getUser(): Promise<AuthMessage<User | String>> {
-    const getUser = async ():Promise<AuthMessage<User | String>> => {
-      const session = localStorage.getItem('session');
-      console.log();
+    try {
+      const getUser = async (): Promise<AuthMessage<User | String>> => {
+        const session = localStorage.getItem('session');
+        console.log();
 
-      const user = await fetch('http://localhost:8080/users/auth/get_session_info', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(session)
-      });
+        const user = await fetch('http://localhost:8080/users/auth/get_session_info', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(session)
+        });
 
-      if (user.ok) {
-        const userInfo: User = await user.json();
-        return { type: 'get', payload: { username: userInfo.username, email: userInfo.email, id: userInfo.id, profile_pic: userInfo.profile_pic } };
+        if (user.ok) {
+          const userInfo: User = await user.json();
+          return { type: 'get', payload: { username: userInfo.username, email: userInfo.email, id: userInfo.id, profile_pic: userInfo.profile_pic } };
+        }
+        else {
+          return { type: 'error', payload: 'User not found' };
+        }
       }
-      else {
-        return { type: 'error', payload: 'User not found' };
-      }
+
+      return Promise.resolve(getUser());
     }
-
-    return Promise.resolve(getUser());
+    catch (err) {
+      return Promise.resolve({ type: 'error', payload: "Local storage not found" });
+    }
   }
 }

@@ -1,8 +1,5 @@
 import { createSignal } from "solid-js";
-import { redirect } from "solid-start";
-import server$ from "solid-start/server";
 import Auth from "~/authentication/auth";
-
 
 type Form = {
   username: string;
@@ -52,6 +49,8 @@ export default function Login() {
     const data = await res.text();
     const session = new Auth();
     session.createSession(data);
+
+    window.location.href = '/';
   }
 
 
@@ -74,7 +73,6 @@ export default function Login() {
     }
 
     sendForm();
-
   }
 
   return <div class="flex justify-center bg-primary  min-h-[100vh]">
@@ -86,7 +84,6 @@ export default function Login() {
           {loginError()}
         </div> : <></>
       }
-
 
       <form class="flex flex-col gap-4 mt-10">
         <label class="text-xl font-bold text-white ">Username</label>
