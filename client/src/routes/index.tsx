@@ -11,7 +11,7 @@ const uploadFile = (ws: WebSocket | undefined, file: File) => {
   const testName = 'test.mp4';
 
   if (ws != undefined) {
-    ws.send(JSON.stringify({file_name: testName, file_size: file.size}))
+    ws.send(JSON.stringify({ file_name: testName, file_size: file.size }))
     reader.onload = (e) => {
       if (e.target?.result) {
         console.log("Sending chunk");
@@ -82,7 +82,7 @@ const Upload = () => {
 
 export default function Home() {
   return (
-    <main class="">
+    <main class="bg-primary text-white min-h-screen">
       <Upload />
     </main>
   );
