@@ -10,7 +10,7 @@ use crate::controllers::user_controllers::{
 };
 use actix_cors::Cors;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
-use controllers::auth::login_user;
+use controllers::auth::{login_user, session_user};
 use controllers::{
     user_controllers::get_user::get_user,
     video_controllers::{
@@ -27,7 +27,7 @@ async fn index() -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
-        let cors  = Cors::default()
+        let cors = Cors::default()
             .allow_any_origin()
             .allow_any_method()
             .allow_any_header()
@@ -44,6 +44,7 @@ async fn main() -> std::io::Result<()> {
             .service(create_video)
             .service(get_video)
             .service(login_user::login_user)
+            .service(session_user::get_session_info)
             .route("/videos/sockets/upload", web::get().to(video_upload_socket))
     })
     .bind(("127.0.0.1", 8080))?

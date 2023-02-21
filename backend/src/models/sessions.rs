@@ -1,11 +1,11 @@
 use crate::models::user::User;
 use crate::lib_db::db_connection::db_connection;
 use crate::schema::*;
-use crate::traits::db::{Create, Read};
+use crate::traits::db::Read;
 use crate::traits::get_db::GetFromDb;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use uuid::{uuid, Uuid};
+use uuid::Uuid;
 
 
 #[derive(Debug, Clone, Queryable, Serialize, Deserialize)]

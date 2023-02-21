@@ -15,4 +15,3 @@ pub async fn get_session_info(session_key: web::Json<String>) -> impl Responder 
         }
     }
 }
-

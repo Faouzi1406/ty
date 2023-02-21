@@ -26,6 +26,7 @@ diesel::table! {
         username -> Varchar,
         password -> Varchar,
         email -> Varchar,
+        profile_pic -> Varchar,
     }
 }
 
