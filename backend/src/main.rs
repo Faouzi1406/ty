@@ -15,6 +15,7 @@ use controllers::{
     user_controllers::get_user::get_user,
     video_controllers::{
         create_video::create_video, delete_video::delete_video, get_video::get_video,
+        get_all_videos::get_all_videos,
     },
 };
 use video_uploading::video_upload_socket::video_upload_socket;
@@ -45,6 +46,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_video)
             .service(login_user::login_user)
             .service(session_user::get_session_info)
+            .service(get_all_videos)
             .route("/videos/sockets/upload", web::get().to(video_upload_socket))
     })
     .bind(("127.0.0.1", 8080))?

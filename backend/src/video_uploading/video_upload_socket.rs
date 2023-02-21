@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
-use std::{fs::OpenOptions, io::Write};
-
+use crate::traits::db::Create;
 use actix::{Actor, StreamHandler};
 use actix_web::{web, App, Error, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
+use serde::{Deserialize, Serialize};
+use std::{fs::OpenOptions, io::Write};
 
 use crate::models::video::VideoCreate;
 
@@ -11,16 +11,24 @@ pub struct WsVideoUploadSession {
     file_name: String,
     file: Vec<u8>,
     file_size: usize,
+    user_id: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileUpload {
-    file_name: String,
     file_size: usize,
+    user_id: i32,
+    title: String,
+    description: Option<String>,
 }
 
 impl Actor for WsVideoUploadSession {
     type Context = ws::WebsocketContext<Self>;
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VideoUploaded {
+    pub file_name: String,
 }
 
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSession {
@@ -31,18 +39,29 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                     let file_upload: Result<FileUpload, serde_json::Error> =
                         serde_json::from_str(&value);
 
-                    let file_upload = match file_upload {
-                        Ok(value) => {
-                            self.file_name = value.file_name;
-                            self.file_size = value.file_size
-                        }
-                        Err(e) => {
-                            println!("Error: {:?}", e);
-                            return;
-                        }
+                    let file = if let Ok(file_upload) = file_upload {
+                        let file_name = String::from("./videos/")
+                            + uuid::Uuid::new_v4().to_string().as_str()
+                            + ".mp4";
+
+                        self.file_name = file_name.clone();
+                        self.file_size = file_upload.file_size;
+                        self.user_id = file_upload.user_id;
+
+                        let video_create = VideoCreate {
+                            title: file_upload.title,
+                            url: self.file_name.clone().replace("./videos/", ""),
+                            user_id: self.user_id,
+                            description: file_upload.description,
+                        };
+
+                        println!("Video create: {:?}", video_create);
+
+                        video_create.create().expect("Video create failed");
                     };
                 }
                 ws::Message::Binary(value) => {
+                    println!("Binary: {:?}", value.len());
                     self.file.extend(value);
                     let mut file = OpenOptions::new()
                         .write(true)
@@ -50,9 +69,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                         .open(&self.file_name)
                         .unwrap();
 
+                    println!(" {:?} : {:?}", self.file.len(), self.file_size);
                     if self.file.len() == self.file_size {
                         file.write(&self.file).unwrap();
-                        ctx.text("File uploaded successfully");
                     }
                 }
 
@@ -77,6 +96,7 @@ pub async fn video_upload_socket(
             file_name: "".to_string(),
             file_size: 0,
             file: vec![],
+            user_id: 0,
         },
         &req,
         stream,

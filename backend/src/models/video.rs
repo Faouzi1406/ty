@@ -16,7 +16,7 @@ pub struct Video {
     pub user_id: i32,
 }
 
-#[derive(Insertable, Clone, Deserialize, Serialize)]
+#[derive(Insertable, Clone, Deserialize, Serialize, Debug)]
 #[table_name = "video"]
 pub struct VideoCreate {
     pub title: String,
