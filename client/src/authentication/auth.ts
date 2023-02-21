@@ -7,6 +7,7 @@ export type User = {
   id: String,
   username: String,
   email: String,
+  profile_pic:String
 }
 
 export default class Auth {
@@ -30,7 +31,7 @@ export default class Auth {
 
       if (user.ok) {
         const userInfo: User = await user.json();
-        return { type: 'get', payload: { username: userInfo.username, email: userInfo.email, id: userInfo.id } };
+        return { type: 'get', payload: { username: userInfo.username, email: userInfo.email, id: userInfo.id, profile_pic: userInfo.profile_pic } };
       }
       else {
         return { type: 'error', payload: 'User not found' };

@@ -13,7 +13,6 @@ export default function Login() {
   const [form, setForm] = createSignal<Form>({ username: "", password: "" });
   const [formError, setFormError] = createSignal<Form>({ username: "", password: "" });
   const [loginError, setLoginError] = createSignal<String | undefined>();
-  const [user, setUser] = createSignal<User | undefined>();
   const auth = new Auth;
 
   const getUser = async () => {
