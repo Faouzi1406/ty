@@ -16,6 +16,7 @@ pub struct User {
     pub id: i32,
     pub username: String,
     pub email: String,
+    pub profile_pic: String
 }
 
 #[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
@@ -50,7 +51,7 @@ impl ReadWrite for User {
         let mut connection = db_connection();
 
         let user = users::table
-            .select((users::id, users::username, users::email))
+            .select((users::id, users::username, users::email, users::profile_pic))
             .filter(users::username.eq(&self.username))
             .first::<User>(&mut connection)
             .expect("Error reading user");
@@ -90,7 +91,7 @@ impl ReadWrite for User {
         let mut connection = db_connection();
 
         let users = users::table
-            .select((users::id, users::username, users::email))
+            .select((users::id, users::username, users::email, users::profile_pic))
             .load::<User>(&mut connection);
 
         users
@@ -106,7 +107,7 @@ impl Create<User> for NewUser {
 
         let user = diesel::insert_into(users::table)
             .values(self)
-            .returning((users::id, users::username, users::email))
+            .returning((users::id, users::username, users::email, users::profile_pic))
             .get_result::<User>(&mut connection);
 
         let hash_pass = Arc::new(self.clone());
@@ -134,7 +135,7 @@ impl GetFromDb for User {
         let mut connection = db_connection();
 
         let user = users::table
-            .select((users::id, users::username, users::email))
+            .select((users::id, users::username, users::email, users::profile_pic))
             .filter(users::id.eq(id))
             .first::<User>(&mut connection);
 
@@ -143,17 +144,18 @@ impl GetFromDb for User {
 }
 
 impl Auth for UserAuth {
-    fn login(
-        username: String,
-        password: String,
-    ) -> Result<SessionKeyDb, diesel::result::Error> {
+    fn login(username: String, password: String) -> Result<SessionKeyDb, diesel::result::Error> {
         let mut connection = db_connection();
 
         let user = users::table
-            .select((users::id,users::username, users::password))
+            .select((users::id, users::username, users::password))
             .filter(users::username.eq(&username))
-            .first::<UserAuth>(&mut connection)
-            .expect("Error reading user");
+            .first::<UserAuth>(&mut connection);
+
+        let user = match user {
+            Ok(user) => user,
+            Err(e) => return Err(e),
+        };
 
         let verify = bcrypt::verify(&password, &user.password);
 
@@ -168,6 +170,11 @@ impl Auth for UserAuth {
         } else {
             return Err(diesel::result::Error::NotFound);
         }
+    }
+
+    fn get_user_session_info(session_key: String) -> Result<User, diesel::result::Error> {
+        let user = SessionKeyDb::get_user(session_key);
+        user
     }
 
     // fn logout(username: String) -> bool {

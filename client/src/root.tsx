@@ -1,5 +1,8 @@
 // @refresh reload
 import { Suspense } from "solid-js";
+import Auth from "./authentication/auth";
+import { createSignal } from "solid-js";
+import { User } from "./authentication/auth";
 import {
   A,
   Body,
@@ -15,6 +18,15 @@ import {
 import "./root.css";
 
 export default function Root() {
+  const [user, setUser] = createSignal<User | undefined>();
+  const auth = new Auth;
+
+  const getUser = async () => {
+    const user = await auth.getUser();
+    typeof user.payload != 'string' ? setUser(user.payload) : setUser(undefined);
+  }
+  getUser();
+
   return (
     <Html lang="en">
       <Head>
@@ -25,18 +37,21 @@ export default function Root() {
       <Body>
         <Suspense>
           <ErrorBoundary>
-            <div>
-              <nav class="bg-gray-800">
-                <ul class="flex gap-2 text-gray-200 h-12 items-center px-5">
-                  <div class="flex-grow">
-                    <A href="/" class="text-2xl font-semibold">Ty</A>
-                  </div>
-                  <div class="">
-                    <A href="/login" class="text-lg font-semibold">Login</A>
-                  </div>
-                </ul>
-              </nav>
-            </div>
+            <nav class="top-0 sticky bg-primary shadow-lg py-2 px-2">
+              <ul class="flex gap-2 text-gray-200 h-12 items-center px-5">
+                <div class="flex-grow">
+                  <A href="/" class="text-2xl font-semibold">Ty</A>
+                </div>
+                <div class="flex items-center gap-3 ">
+                  {user() ?
+                    <div class="flex items-center gap-3">
+                      <img class="rounded-full w-12 aspect-square border p-1" src={ user()?.profile_pic} />
+                    </div>
+                    :
+                    <A href="/register" class="text-lg font-semibold">Login</A>}
+                </div>
+              </ul>
+            </nav>
             <Routes>
               <FileRoutes />
             </Routes>

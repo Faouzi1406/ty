@@ -1,9 +1,11 @@
+use crate::models::user::User;
 use crate::lib_db::db_connection::db_connection;
 use crate::schema::*;
-use crate::traits::db::{Create, Read};
+use crate::traits::db::Read;
+use crate::traits::get_db::GetFromDb;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use uuid::{uuid, Uuid};
+use uuid::Uuid;
 
 
 #[derive(Debug, Clone, Queryable, Serialize, Deserialize)]
@@ -50,4 +52,24 @@ impl Read<SessionKeyDb> for SessionKeyDb {
 
         session
     }
+}
+
+impl SessionKeyDb {
+    pub fn get_user(session_key:String) -> Result<User, diesel::result::Error> {
+        let mut connection = db_connection();
+
+        let session = sessions::table
+            .filter(sessions::sessions_key.eq(session_key))
+            .first::<SessionKeyDb>(&mut connection);
+
+        let session = match session {
+            Ok(session) => session,
+            Err(_) => return Err(diesel::result::Error::NotFound),
+        };
+        
+        let user = User::get_by_id(session.user_id);
+
+        user 
+    }
+
 }
