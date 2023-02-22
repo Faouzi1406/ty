@@ -8,6 +8,8 @@ type FormVideo = {
   file_size: number
 }
 
+type Loading = 'isLoading' | 'Done' | 'None';
+
 export default function CreateVideo() {
   const [user, setUser] = createSignal<User | undefined>();
   const [video, setVideo] = createSignal<File | undefined>();
@@ -15,6 +17,7 @@ export default function CreateVideo() {
   const [form, setForm] = createSignal<FormVideo>({ title: '', description: '', user_id: 0, file_size: 0 });
   const [uploadError, setUploadError] = createSignal<string | undefined>();
   const [websocket, setWebsocket] = createSignal<WebSocket | undefined>();
+  const [uploading, setUploading] = createSignal<Loading>('None');
 
 
   const getUser = async () => {
@@ -71,6 +74,8 @@ export default function CreateVideo() {
       return;
     }
 
+
+
     const websocket = new WebSocket('ws://localhost:8080/videos/sockets/upload');
 
     websocket.onopen = () => {
@@ -101,7 +106,7 @@ export default function CreateVideo() {
         }
       }
     }
-
+    setUploading('isLoading');
   };
 
   getUser();
@@ -127,7 +132,11 @@ export default function CreateVideo() {
           <label class="text-white font-bold text-lg">Video</label>
           <input type="file" name="video" class="w-full mt-2 mb-2  h-10 text-white p-2" placeholder="Video" onChange={(e) => handleVideo(e)} />
         </div>
-        <button class="bg-secondary text-white font-bold text-lg w-1/3 h-10 mt-4" onClick={handleVidoeSubmit}>Create</button>
+        {
+          uploading() == 'None' ?
+            <button class="bg-secondary text-white font-bold text-lg w-1/3 h-10 mt-4" onClick={handleVidoeSubmit}>Create</button> :
+            <button class="bg-secondary text-white font-bold text-lg w-1/3 h-10 mt-4" onClick={(e) => e.preventDefault()}>Uploading...</button>
+        }
       </form>
     </div>
   )

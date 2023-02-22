@@ -11,11 +11,29 @@ import {
   Head,
   Html,
   Meta,
+  redirect,
+  Route,
+  RouteDataArgs,
   Routes,
   Scripts,
   Title,
 } from "solid-start";
 import "./root.css";
+import WatchVideo from "./routes/video/[id]";
+
+
+const videoData = async ({ params, location, navigate, data }: RouteDataArgs) => {
+  const video = await fetch(`http://localhost:8080/videos/select/watch/${params.id}`);
+  const videoFile = await video.blob()
+
+  const fetchVidoeInfo = await fetch(`http://localhost:8080/videos/select/${params.id}`);
+  const videoInfo = await fetchVidoeInfo.json();
+
+  const fetchUser = await fetch(`http://localhost:8080/user/select/${videoInfo.user_id}`);
+  const userJson = await fetchUser.json();
+
+  return [videoFile, videoInfo, userJson];
+}
 
 export default function Root() {
   const [user, setUser] = createSignal<User | undefined>();
@@ -26,6 +44,7 @@ export default function Root() {
     typeof user.payload != 'string' ? setUser(user.payload) : setUser(undefined);
   }
   getUser();
+
 
   return (
     <Html lang="en">
@@ -45,7 +64,7 @@ export default function Root() {
                 <div class="flex items-center gap-3 ">
                   {user() ?
                     <div class="flex items-center gap-3">
-                      <img class="rounded-full w-12 aspect-square border p-1" src={ user()?.profile_pic} />
+                      <img class="rounded-full w-12 aspect-square border p-1" src={user()?.profile_pic} />
                     </div>
                     :
                     <A href="/register" class="text-lg font-semibold">Login</A>}
@@ -53,6 +72,11 @@ export default function Root() {
               </ul>
             </nav>
             <Routes>
+              <Route
+                path={"/video/:id"}
+                component={WatchVideo}
+                data={videoData}
+              />
               <FileRoutes />
             </Routes>
           </ErrorBoundary>
