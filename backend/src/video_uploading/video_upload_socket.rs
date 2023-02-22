@@ -55,8 +55,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                             description: file_upload.description,
                         };
 
-                        println!("Video create: {:?}", video_create);
-
                         video_create.create().expect("Video create failed");
                     };
                 }
@@ -69,9 +67,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                         .open(&self.file_name)
                         .unwrap();
 
-                    println!(" {:?} : {:?}", self.file.len(), self.file_size);
                     if self.file.len() == self.file_size {
                         file.write(&self.file).unwrap();
+                        ctx.text("uploaded");
                     }
                 }
 

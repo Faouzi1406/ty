@@ -20,6 +20,7 @@ import {
 } from "solid-start";
 import "./root.css";
 import WatchVideo from "./routes/video/[id]";
+import Dropdown from "./components/Dropdown";
 
 
 const videoData = async ({ params, location, navigate, data }: RouteDataArgs) => {
@@ -64,7 +65,7 @@ export default function Root() {
                 <div class="flex items-center gap-3 ">
                   {user() ?
                     <div class="flex items-center gap-3">
-                      <img class="rounded-full w-12 aspect-square border p-1" src={user()?.profile_pic} />
+                      <Dropdown props={user()} />
                     </div>
                     :
                     <A href="/register" class="text-lg font-semibold">Login</A>}
