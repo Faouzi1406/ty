@@ -81,7 +81,7 @@ export default function Login() {
       <h1 class="text-4xl font-bold text-white">Login</h1>
       {
         loginError() != undefined ? <div class="text-red-200 bg-red-600 w-2/3 px-2 py-3 rounded mt-2">
-          {loginError()}
+          <p>{loginError() ? loginError()?.toString() : ''}</p>
         </div> : <></>
       }
 

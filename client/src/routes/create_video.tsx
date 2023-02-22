@@ -8,13 +8,16 @@ type FormVideo = {
   file_size: number
 }
 
+type Loading = 'isLoading' | 'Done' | 'None';
+
 export default function CreateVideo() {
-  const [user, setUser] = createSignal<User | undefined>();
-  const [video, setVideo] = createSignal<File | undefined>();
+  const [user, setUser] = createSignal<User>();
+  const [video, setVideo] = createSignal<File>();
   const [formError, hanldeFormError] = createSignal<FormVideo>({ title: '', description: '', user_id: 0, file_size: 0 });
   const [form, setForm] = createSignal<FormVideo>({ title: '', description: '', user_id: 0, file_size: 0 });
   const [uploadError, setUploadError] = createSignal<string | undefined>();
   const [websocket, setWebsocket] = createSignal<WebSocket | undefined>();
+  const [uploading, setUploading] = createSignal<Loading>('None');
 
 
   const getUser = async () => {
@@ -71,19 +74,26 @@ export default function CreateVideo() {
       return;
     }
 
+
+    if (video() == undefined) {
+      console.log('hello');
+      setUploadError("Pleas select a video before uploading");
+      return;
+    } else {
+      setUploadError("");
+    };
+
     const websocket = new WebSocket('ws://localhost:8080/videos/sockets/upload');
 
     websocket.onopen = () => {
+
+
       setForm({ ...form(), file_size: video()!.size });
       websocket.send(JSON.stringify(form()));
 
       const reader = new FileReader();
-      if (video() == undefined) {
-        setUploadError("Something went wrong are you sure you selected a video?");
-        return;
-      } else {
-        setUploadError("");
-      };
+
+
       const file = video() as File;
       const chunkSize = 16384;
       let offset = 0;
@@ -102,6 +112,14 @@ export default function CreateVideo() {
       }
     }
 
+    websocket.onmessage = (e) => {
+      if (e.data == "uploadd") {
+        window.location.href = "/";
+      }
+    }
+
+    setUploading('isLoading');
+    console.log("fast?");
   };
 
   getUser();
@@ -125,9 +143,20 @@ export default function CreateVideo() {
           </div>
 
           <label class="text-white font-bold text-lg">Video</label>
-          <input type="file" name="video" class="w-full mt-2 mb-2  h-10 text-white p-2" placeholder="Video" onChange={(e) => handleVideo(e)} />
+          <input 
+            type="file" 
+            name="video" 
+            class="w-full mt-2 mb-2  h-10 text-white p-2" 
+            placeholder="Video" 
+            onChange={// @ts-ignore 
+            (e) => handleVideo(e)}
+          />
         </div>
-        <button class="bg-secondary text-white font-bold text-lg w-1/3 h-10 mt-4" onClick={handleVidoeSubmit}>Create</button>
+        {
+          uploading() == 'None' ?
+            <button class="bg-secondary text-white font-bold text-lg w-1/3 h-10 mt-4" onClick={handleVidoeSubmit}>Create</button> :
+            <button class="bg-secondary text-white font-bold text-lg w-1/3 h-10 mt-4" onClick={(e) => e.preventDefault()}>Uploading...</button>
+        }
       </form>
     </div>
   )
