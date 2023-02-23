@@ -2,6 +2,7 @@ use crate::traits::db::Create;
 use actix::{Actor, StreamHandler};
 use actix_web::{web, App, Error, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
+use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::{fs::OpenOptions, io::Write};
 
@@ -12,6 +13,7 @@ pub struct WsVideoUploadSession {
     file: Vec<u8>,
     file_size: usize,
     user_id: i32,
+    thumb_mail_url: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,6 +22,7 @@ pub struct FileUpload {
     user_id: i32,
     title: String,
     description: Option<String>,
+    thumb_mail_url: Option<String>,
 }
 
 impl Actor for WsVideoUploadSession {
@@ -44,6 +47,22 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                             + uuid::Uuid::new_v4().to_string().as_str()
                             + ".mp4";
 
+                        if file_upload.thumb_mail_url.is_some() {
+                            let thumb_mail_url = uuid::Uuid::new_v4().to_string() + ".jpeg";
+                            let create_image = std::fs::File::create(&thumb_mail_url);
+                            self.thumb_mail_url = Some(thumb_mail_url);
+
+                            if create_image.is_ok() {
+                                let base_64_string = general_purpose::STANDARD_NO_PAD
+                                    .decode(file_upload.thumb_mail_url.unwrap())
+                                    .unwrap();
+                                create_image
+                                    .unwrap()
+                                    .write_all(&base_64_string)
+                                    .expect("file go brrrrrrr....");
+                            }
+                        }
+
                         self.file_name = file_name.clone();
                         self.file_size = file_upload.file_size;
                         self.user_id = file_upload.user_id;
@@ -53,6 +72,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                             url: self.file_name.clone().replace("./videos/", ""),
                             user_id: self.user_id,
                             description: file_upload.description,
+                            thumb_mail_url: self.thumb_mail_url.clone(),
                         };
 
                         video_create.create().expect("Video create failed");
@@ -95,6 +115,7 @@ pub async fn video_upload_socket(
             file_size: 0,
             file: vec![],
             user_id: 0,
+            thumb_mail_url: None,
         },
         &req,
         stream,

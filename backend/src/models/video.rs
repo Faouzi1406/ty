@@ -1,6 +1,7 @@
 use crate::lib_db::db_connection::db_connection;
-use crate::schema::video;
-use crate::traits::db::{Create, ReadWrite};
+use crate::models::user::{self, User};
+use crate::schema::{users, video};
+use crate::traits::db::{Create, ReadWrite, Relational};
 use crate::traits::get_db::GetFromDb;
 use chrono::{NaiveDateTime, Utc};
 use diesel::*;
@@ -14,6 +15,7 @@ pub struct Video {
     pub url: String,
     pub created_at: NaiveDateTime,
     pub user_id: i32,
+    pub thumbmail: String,
 }
 
 #[derive(Insertable, Clone, Deserialize, Serialize, Debug)]
@@ -23,7 +25,11 @@ pub struct VideoCreate {
     pub description: Option<String>,
     pub url: String,
     pub user_id: i32,
+    pub thumb_mail_url: Option<String>,
 }
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct VideoUser(User, Video);
 
 impl Create<Video> for VideoCreate {
     fn create(&self) -> Result<Video, diesel::result::Error> {
@@ -45,6 +51,7 @@ impl Create<Video> for VideoCreate {
                 description: self.description.clone(),
                 url: self.url.clone(),
                 created_at: Utc::now().naive_utc(),
+                thumbmail: "default.jpeg".to_string(),
                 user_id: self.user_id,
             }),
             Err(e) => Err(e),
@@ -64,6 +71,7 @@ impl ReadWrite for Video {
                 video::url,
                 video::created_at,
                 video::user_id,
+                video::thumb_mail_url,
             ))
             .filter(video::id.eq(&self.id))
             .first::<Video>(&mut connection)
@@ -109,6 +117,7 @@ impl ReadWrite for Video {
                 video::url,
                 video::created_at,
                 video::user_id,
+                video::thumb_mail_url,
             ))
             .load::<Video>(&mut connection);
 
@@ -127,10 +136,35 @@ impl GetFromDb for Video {
                 video::url,
                 video::created_at,
                 video::user_id,
+                video::thumb_mail_url,
             ))
             .filter(video::id.eq(id))
             .first::<Video>(&mut connection);
 
         get_video
+    }
+}
+
+impl Relational<VideoUser> for Video {
+    fn get_with_relation() -> Result<Vec<VideoUser>, diesel::result::Error> {
+        let mut connection = db_connection();
+
+        let videos_with_users = video::table
+            .inner_join(users::table)
+            .select((
+                (users::id, users::username, users::email, users::profile_pic),
+                (
+                    video::id,
+                    video::title,
+                    video::description,
+                    video::url,
+                    video::created_at,
+                    video::user_id,
+                    video::thumb_mail_url,
+                ),
+            ))
+            .load::<VideoUser>(&mut connection);
+
+        videos_with_users
     }
 }

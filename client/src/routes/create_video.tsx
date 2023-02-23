@@ -143,13 +143,23 @@ export default function CreateVideo() {
           </div>
 
           <label class="text-white font-bold text-lg">Video</label>
-          <input 
-            type="file" 
-            name="video" 
-            class="w-full mt-2 mb-2  h-10 text-white p-2" 
-            placeholder="Video" 
+          <input
+            type="file"
+            name="video"
+            class="w-full mt-2 mb-2  h-10 text-white p-2"
+            placeholder="Video"
             onChange={// @ts-ignore 
-            (e) => handleVideo(e)}
+              (e) => handleVideo(e)}
+          />
+
+          <label class="text-white font-bold text-lg">Thumbmail</label>
+          <input
+            type="file"
+            name="video"
+            class="w-full mt-2 mb-2  h-10 text-white p-2"
+            placeholder="Video"
+            // onChange={// @ts-ignore 
+            //   (e) => handleVideo(e)}
           />
         </div>
         {

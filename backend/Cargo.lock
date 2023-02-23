@@ -456,6 +456,7 @@ dependencies = [
  "actix-session",
  "actix-web",
  "actix-web-actors",
+ "base64 0.21.0",
  "bcrypt",
  "chrono",
  "diesel",

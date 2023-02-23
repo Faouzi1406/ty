@@ -36,6 +36,7 @@ diesel::table! {
         title -> Varchar,
         description -> Nullable<Text>,
         url -> Varchar,
+        thumb_mail_url -> Varchar,
         created_at -> Timestamp,
         user_id -> Int4,
     }

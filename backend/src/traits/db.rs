@@ -21,3 +21,7 @@ pub trait Read<T> {
     /// Read a single record from the database
     fn read(&self) -> Result<T, diesel::result::Error>;
 }
+
+pub trait Relational<T> {
+    fn get_with_relation() -> Result<Vec<T>, diesel::result::Error>;
+}
