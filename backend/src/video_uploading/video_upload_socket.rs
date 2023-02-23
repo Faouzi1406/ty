@@ -2,9 +2,9 @@ use crate::traits::db::Create;
 use actix::{Actor, StreamHandler};
 use actix_web::{web, App, Error, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
+use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::{fs::OpenOptions, io::Write};
-use base64::{Engine as _, engine::general_purpose};
 
 use crate::models::video::VideoCreate;
 
@@ -53,8 +53,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                             self.thumb_mail_url = Some(thumb_mail_url);
 
                             if create_image.is_ok() {
-                                let base_64_string = general_purpose::STANDARD_NO_PAD.decode(file_upload.thumb_mail_url.unwrap()).unwrap();   
-                                create_image.unwrap().write_all(&base_64_string).expect("file go brrrrrrr....");
+                                let base_64_string = general_purpose::STANDARD_NO_PAD
+                                    .decode(file_upload.thumb_mail_url.unwrap())
+                                    .unwrap();
+                                create_image
+                                    .unwrap()
+                                    .write_all(&base_64_string)
+                                    .expect("file go brrrrrrr....");
                             }
                         }
 
