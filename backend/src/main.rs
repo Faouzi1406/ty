@@ -11,7 +11,7 @@ use crate::controllers::user_controllers::{
 use actix_cors::Cors;
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use controllers::auth::{login_user, session_user};
-use controllers::video_controllers::serve_video::serve_video;
+use controllers::video_controllers::serve_video::{serve_video, serve_thumbmail};
 use controllers::{
     user_controllers::get_user::get_user,
     video_controllers::{
@@ -49,6 +49,7 @@ async fn main() -> std::io::Result<()> {
             .service(session_user::get_session_info)
             .service(get_all_videos)
             .service(serve_video)
+            .service(serve_thumbmail)
             .route("/videos/sockets/upload", web::get().to(video_upload_socket))
     })
     .bind(("127.0.0.1", 8080))?

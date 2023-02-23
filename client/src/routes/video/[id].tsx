@@ -11,9 +11,14 @@ type VideoInfo = {
   created_at: String
 };
 
+type UserVideo = {
+  user:User,
+  video:VideoInfo
+}
+
 export default function WatchVideo() {
   const [vid, setVideo] = createSignal<String | undefined>();
-  const [vidinfo, setVideoInfo] = createSignal<VideoInfo>();
+  const [vidinfo, setVideoInfo] = createSignal<UserVideo>();
   const [user, setUser] = createSignal<User>();
 
   const video = async () => {
@@ -23,8 +28,7 @@ export default function WatchVideo() {
     setVideo(objectUrl);
     //@ts-ignore
     setVideoInfo(video[1]);
-    //@ts-ignore
-    setUser(video[2]);
+    console.log(vidinfo());
   }
   video();
 
@@ -41,14 +45,14 @@ export default function WatchVideo() {
           <div class='text-white justify-start items-start  md:w-1/3 lg:w-3/6'>
             {
               vidinfo() != undefined ? <div>
-                <p class="font-bold text-2xl">{vidinfo()?.title.toString() || ''}</p>
+                <p class="font-bold text-2xl">{vidinfo()?.video.title.toString() || ''}</p>
                 <div class='flex items-center gap-2'>
-                  <img src={user() ? user()?.profile_pic.toString() : ''} alt="profile pic" class='rounded-full w-12 h-12 aspect-square border p-1 mt-2' />
-                  <p class='font-bold'>{user() ? user()?.username.toString() : ''}</p>
+                  <img src={vidinfo() ? vidinfo()?.user.profile_pic.toString() : ''} alt="profile pic" class='rounded-full w-12 h-12 aspect-square border p-1 mt-2' />
+                  <p class='font-bold'>{vidinfo() ? vidinfo()?.user.username.toString() : ''}</p>
                 </div>
-                <details class='rounded  mt-2'>
+                <details class='rounded  mt-2 bg-sec p-2 shadow-md'>
                   <summary class='font-bold'>Description</summary>
-                  <p>{vidinfo() ? vidinfo()?.description?.toString() : ''}</p>
+                  <p>{vidinfo() ? vidinfo()?.video.description?.toString() : ''}</p>
                 </details>
               </div> :
                 <div class='border  p-5 rounded-full font-bold'>

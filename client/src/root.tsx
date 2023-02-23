@@ -30,10 +30,7 @@ const videoData = async ({ params, location, navigate, data }: RouteDataArgs) =>
   const fetchVidoeInfo = await fetch(`http://localhost:8080/videos/select/${params.id}`);
   const videoInfo = await fetchVidoeInfo.json();
 
-  const fetchUser = await fetch(`http://localhost:8080/user/select/${videoInfo.user_id}`);
-  const userJson = await fetchUser.json();
-
-  return [videoFile, videoInfo, userJson];
+  return [videoFile, videoInfo];
 }
 
 export default function Root() {

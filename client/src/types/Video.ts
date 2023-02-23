@@ -4,5 +4,6 @@ export type Video = {
   description:String, 
   url:String,
   created_at:String,
-  user_id:String
+  user_id:String,
+  thumbmail:String
 }

@@ -20,6 +20,7 @@ actix = "0.13.0"
 actix-session = { version = "0.7.2", features = ["redis-actor-session"] }
 actix-cors = "0.6.4"
 actix-files = "0.6.2"
+base64 = "0.21.0"
 
 #uuid
 [dependencies.uuid]
