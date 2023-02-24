@@ -1,6 +1,7 @@
 import { createSignal } from 'solid-js';
 import { useRouteData } from 'solid-start';
 import { User } from "~/authentication/auth";
+import Comments from '~/components/Comments';
 import { RecommendedSide } from '~/components/Recomended';
 
 type VideoInfo = {
@@ -12,8 +13,8 @@ type VideoInfo = {
 };
 
 type UserVideo = {
-  user:User,
-  video:VideoInfo
+  user: User,
+  video: VideoInfo
 }
 
 export default function WatchVideo() {
@@ -39,7 +40,7 @@ export default function WatchVideo() {
           {
             vid() ? <video class='rounded-md  w-3/3 md:w-3/3 lg:w-3/6' controls>
               <source src={vid()?.toString()} type="video/mp4" />
-              </video> : <div>
+            </video> : <div>
             </div>
           }
           <div class='text-white justify-start items-start  md:w-1/3 lg:w-3/6'>
@@ -66,6 +67,8 @@ export default function WatchVideo() {
           <RecommendedSide />
         </div>
       </div>
+
+      <div><Comments /></div>
     </div>
   )
 }

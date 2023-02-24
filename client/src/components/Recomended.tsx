@@ -57,7 +57,35 @@ export const RecommendedSide = () => {
 }
 
 export const RecommendedMain = () => {
-  return (<div>
-    a
+  const [videos, setVideos] = createSignal<[User, Video][]>();
+
+  const getVideos = async () => {
+    let video = await getVid();
+    if (video != "error") {
+      setVideos(video);
+    }
+  }
+
+  getVideos();
+  return (<div class="flex flex-wrap gap-2 p-2">
+    {
+      videos() ? videos()?.map(e => {
+        if (e[1].title != '') {
+          return <a class="w-fit gap-2 h-fit mt-0" href={`/video/${e[1].id}`}>
+            <img src={`http://localhost:8080/videos/select/thumbmail/${e[1].id}`} class="h-52 w-full  aspect-square rounded-md object-cover" />
+            <div>
+              <p class="font-semibold text-white w-96">{e[1].title.toString().substring(0, 40)}</p>
+              <div class="flex items-center gap-1">
+                <img src={e[0].profile_pic.toString()} class="w-10 h-10 aspect-square" />
+                <p class="text-white">{e[0].username.toString()}</p>
+              </div>
+              <p class="text-gray-300 text-sm py-2 font-semibold">{toDays(e[1].created_at.toString())}</p>
+            </div>
+          </a>
+        } else {
+          return <></>
+        }
+      }) : <p>No videos to recommend</p>
+    }
   </div>)
 }
