@@ -41,6 +41,7 @@ impl Create<Video> for VideoCreate {
                 video::description.eq(&self.description),
                 video::url.eq(&self.url),
                 video::user_id.eq(&self.user_id),
+                video::thumb_mail_url.eq(&self.thumb_mail_url.clone().unwrap_or("default.jpeg".to_string()))
             ))
             .execute(&mut connection);
 

@@ -1,6 +1,6 @@
 use crate::traits::db::Create;
 use actix::{Actor, StreamHandler};
-use actix_web::{web, App, Error, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
@@ -48,14 +48,18 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                             + ".mp4";
 
                         if file_upload.thumb_mail_url.is_some() {
-                            let thumb_mail_url = uuid::Uuid::new_v4().to_string() + ".jpeg";
+                            let thumb_mail_url = String::from("./thumbmails/")
+                                + uuid::Uuid::new_v4().to_string().as_str()
+                                + ".jpeg";
+
                             let create_image = std::fs::File::create(&thumb_mail_url);
                             self.thumb_mail_url = Some(thumb_mail_url);
+                            //println!("Ok");
 
                             if create_image.is_ok() {
                                 let base_64_string = general_purpose::STANDARD_NO_PAD
                                     .decode(file_upload.thumb_mail_url.unwrap())
-                                    .unwrap();
+                                    .expect("Me is not very smart?");
                                 create_image
                                     .unwrap()
                                     .write_all(&base_64_string)
@@ -79,7 +83,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsVideoUploadSess
                     };
                 }
                 ws::Message::Binary(value) => {
-                    println!("Binary: {:?}", value.len());
                     self.file.extend(value);
                     let mut file = OpenOptions::new()
                         .write(true)
