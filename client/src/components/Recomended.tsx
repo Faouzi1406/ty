@@ -16,16 +16,7 @@ const getVid = async (): Promise<response> => {
 
 const toDays = (date: string): string => {
   let toDate = new Date(date);
-  let today = new Date();
-  let timeMsDif = toDate.getTime() - today.getTime();
-  let totalDays = Math.ceil(timeMsDif / (1000 * 3600 * 24));
-
-  if (totalDays == 0) {
-    return "Today"
-  }
-  else {
-    return totalDays.toString()
-  }
+  return toDate.getDay().toString() + "-" + toDate.getMonth() + "-" + toDate.getFullYear();
 }
 
 export const RecommendedSide = () => {
@@ -46,7 +37,7 @@ export const RecommendedSide = () => {
         videos() ? videos()?.map(e => {
           if (e[1].title != '') {
             return <a class="w-fit flex gap-2" href={`/video/${e[1].id}`}>
-              <img src={`http://localhost:8080/videos/select/thumbmail/${e[1].id}`} class="h-24 w-32 rounded-md" />
+              <img src={`http://localhost:8080/videos/select/thumbmail/${e[1].id}`} class="h-24 w-40  aspect-square rounded-md object-cover" />
               <div>
                 <p class="font-semibold text-white w-96">{e[1].title.toString().substring(0, 40)}</p>
                 <div class="flex items-center gap-1">
@@ -63,4 +54,10 @@ export const RecommendedSide = () => {
       }
     </div>
   )
+}
+
+export const RecommendedMain = () => {
+  return (<div>
+    a
+  </div>)
 }

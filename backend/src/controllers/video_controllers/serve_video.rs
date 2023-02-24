@@ -31,8 +31,8 @@ pub async fn serve_thumbmail(video_id: web::Path<i32>) -> Result<fs::NamedFile, 
 
     match video {
         Ok(video) => {
-            let mut path = PathBuf::from("./thumbmails/");
-            path.push(video.thumbmail);
+            let mut path = String::from("./thumbmails/");
+            path.push_str(video.thumbmail.replace("./thumbmails/", "").as_str());
             let file = fs::NamedFile::open(path)?;
 
             Ok(file

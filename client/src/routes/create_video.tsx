@@ -5,7 +5,8 @@ type FormVideo = {
   title: string,
   description: string,
   user_id: number,
-  file_size: number
+  file_size: number,
+  thumb_mail_url: String | undefined
 }
 
 type Loading = 'isLoading' | 'Done' | 'None';
@@ -13,8 +14,8 @@ type Loading = 'isLoading' | 'Done' | 'None';
 export default function CreateVideo() {
   const [user, setUser] = createSignal<User>();
   const [video, setVideo] = createSignal<File>();
-  const [formError, hanldeFormError] = createSignal<FormVideo>({ title: '', description: '', user_id: 0, file_size: 0 });
-  const [form, setForm] = createSignal<FormVideo>({ title: '', description: '', user_id: 0, file_size: 0 });
+  const [formError, hanldeFormError] = createSignal<FormVideo>({ title: '', description: '', user_id: 0, file_size: 0, thumb_mail_url: undefined });
+  const [form, setForm] = createSignal<FormVideo>({ title: '', description: '', user_id: 0, file_size: 0, thumb_mail_url: undefined });
   const [uploadError, setUploadError] = createSignal<string | undefined>();
   const [websocket, setWebsocket] = createSignal<WebSocket | undefined>();
   const [uploading, setUploading] = createSignal<Loading>('None');
@@ -54,6 +55,25 @@ export default function CreateVideo() {
     console.log(form());
     setForm({ ...form(), [target.name]: target.value });
   }
+
+  const handleImage = (e: InputEvent) => {
+    const target = e.target as HTMLInputElement;
+    if (!target.files) return;
+    const file = target.files[0];
+
+    if (file.type != 'image/png') {
+      e.preventDefault();
+    }
+
+    const fileReader = new FileReader();
+
+    fileReader.readAsDataURL(file);
+
+    fileReader.onload = (e) => {
+      //@ts-ignore
+      setForm({ ...form(), thumb_mail_url: fileReader.result.split(',')[1]  as String });
+    }
+  };
 
   const handleVideo = (e: InputEvent) => {
     const target = e.target as HTMLInputElement;
@@ -122,6 +142,7 @@ export default function CreateVideo() {
     console.log("fast?");
   };
 
+
   getUser();
 
   return (
@@ -158,8 +179,8 @@ export default function CreateVideo() {
             name="video"
             class="w-full mt-2 mb-2  h-10 text-white p-2"
             placeholder="Video"
-            // onChange={// @ts-ignore 
-            //   (e) => handleVideo(e)}
+            onChange={// @ts-ignore 
+              (e) => handleImage(e)}
           />
         </div>
         {
